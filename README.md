@@ -16,6 +16,11 @@ This studio is designed to be a unified, future-proof suite for running generati
   - Pre-quantized Q3 weights running under VRAM limits.
   - Native spatial latent upscaling (2.0x) pass.
   - Synced audio track generation.
+- **`[x]` Qwen-Image-2.1 Turbo Image Pipeline** (Current Release)
+  - State-of-the-art Qwen-Image-2.1 with Viggle Turbo 8-step distillation.
+  - High-speed Text-to-Image and Image-to-Image (remixing & variations).
+  - INT8 ConvRot DiT (7.26 GB) + Qwen3-VL 8B W4A8 Text Encoder (6.31 GB) + Native RGBA VAE (676 MB).
+  - Scratch disk redirect to `/tmp` (bypassing Kaggle 20GB disk limit) and fast Cloudflare tunneling.
 - **`[x]` Z-Image-Turbo Image Pipeline** (Current Release)
   - Ultra-fast image generation utilizing GGUF models.
   - High-speed inference (under 2 seconds per image) using persistent server RAM configurations.
@@ -36,6 +41,7 @@ To support clean execution, the repository separates user-facing entry points fr
 ```
 free-aistudio/
 ├── notebooks/
+│   ├── qwen-image-2-1.ipynb     # ⚡ Qwen-Image-2.1 Turbo Notebook (Kaggle T2I & I2I Studio)
 │   ├── ltx2-3-video.ipynb       # 🎬 LTX-Video 2.3 Jupyter Notebook (Kaggle Video Studio)
 │   ├── z-image-turbo.ipynb      # 🖼️ Z-Image-Turbo Jupyter Notebook (Kaggle Image Studio)
 │   └── lightning-video.ipynb    # 🎬 LTX-Video 2.3 FP8 Notebook (Lightning.ai Studio)
@@ -55,6 +61,7 @@ Rather than creating code from scratch, you import one of our pre-configured not
 
 ### Step 1: Download your preferred notebook
 Save one of the user-facing notebooks from this repository to your local machine:
+- ⚡ **[qwen-image-2-1.ipynb](notebooks/qwen-image-2-1.ipynb)** (For ultra-fast Qwen 2.1 Text-to-Image & Image-to-Image remixing)
 - 🎬 **[ltx2-3-video.ipynb](notebooks/ltx2-3-video.ipynb)** (For video generation)
 - 🖼  **[z-image-turbo.ipynb](notebooks/z-image-turbo.ipynb)** (For image generation)
 
@@ -66,7 +73,9 @@ Save one of the user-facing notebooks from this repository to your local machine
    - Ensure **Internet** is turned **On**.
 
 ### Step 3: Run the Cells
-Once imported, you only need to run the pre-made cells in sequence. The notebook will automatically sync the repository code, download the pre-built C++ server binary and optimized model weights, launch the background API inference server, and display your Gradio Web UI link.
+Once imported, run the pre-made cells in sequence:
+- **For Qwen-Image-2.1 Turbo**: Run the cells from Step 1 through Step 5. The notebook will automatically redirect Hugging Face / Torch cache to `/tmp` (bypassing Kaggle's 20 GB disk limit), download all INT8 DiT and Qwen3-VL 8B weights via fast multi-threaded `aria2c` (~90s), boot the ComfyUI backend daemon, and print your public Cloudflare Tunnel link (`*.trycloudflare.com`) to launch the interactive Gradio UI.
+- **For LTX-Video & Z-Image-Turbo**: The notebook will automatically sync the repository code, download the pre-built C++ server binary and optimized model weights, launch the background API inference server, and display your Gradio Web UI link.
 
 ## ⚡ Quick Start: How to Run on Lightning.ai (Experimental)
 
@@ -102,6 +111,8 @@ To run the experimental high-quality FP8 model studio, you need a CUDA-enabled e
 
 ## 💡 Key Configurations & Optimizations
 
+- **Viggle Turbo 8-Step Distillation**: Qwen-Image-2.1 leverages Viggle Turbo 8-step sampling (`res_multistep` + `AuraFlow` shift 3.0) with an INT8 ConvRot DiT and W4A8 Qwen3-VL text encoder for photorealistic generation in under 10 seconds on a free Kaggle T4 GPU.
+- **Scratch Disk `/tmp` Redirect**: Bypasses Kaggle's 20 GB root storage limit by dynamically routing Hugging Face, Torch, and ComfyUI cache paths into `/tmp`.
 - **VRAM Saving (VAE Tiling)**: Video VAE decoding is split into tiles (`--vae-tiling`) to prevent Kaggle's T4 GPU from running Out-of-Memory (OOM) during video generation.
 - **Model Quantization**: Uses highly-quantized GGUF formats (e.g. Q3/Q4) to fit multiple large model weights simultaneously in memory.
 - **Persistent Server Loading**: Starting the server once in the background eliminates reload delays. Subsequent requests generate images/videos instantly.
